@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/python
 
-import pyximport; pyximport.install()
 import numpy as np
+import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()},reload_support=True)
 import time
 
 import gaussians_to_grid
@@ -48,12 +48,11 @@ class ElectrostaticPotentialSolver(object):
         if parameter_name in self.solver_parameter_names:
             self.solver_parameters[parameter_name] = parameter_value
         else:
-            print "Parameter name '{}' is not included in the set of solver parameters:\n{}".format(parameter_name,
-                                                                                        self.solver_parameter_names)
+            print("Parameter name {} is not included in the set of solver parameters: {}".format(parameter_name,self.solver_parameter_names))
     
     
     def solve_potential(self):
-        for param_name, param_value in self.solver_parameters.iteritems():
+        for param_name, param_value in self.solver_parameters. items():
             if param_value == 0.0:
                 raise Exception("Solver parameter '{}' is not set yet".format(param_name))
         
@@ -64,7 +63,7 @@ class ElectrostaticPotentialSolver(object):
         self._initialize_grid()
         end = time.clock()
         total_time = total_time + end - start
-        print '| Grid initialization took {} s'.format(end-start)
+        print('| Grid initialization took {} s'.format(end-start))
         
         start = time.clock()
         #self._collocate_gaussians_to_grid()
@@ -73,15 +72,15 @@ class ElectrostaticPotentialSolver(object):
                                                                         self.solver_parameters['gaussian_cutoff'])
         end = time.clock()
         total_time = total_time + end - start
-        print '| Collocation of Gaussians to grid took {} s'.format(end-start)
+        print('| Collocation of Gaussians to grid took {} s'.format(end-start))
         
         start = time.clock()
         self._solve_fft_poisson()
         end = time.clock()
         total_time = total_time + end - start
-        print '| Solving of the potential using FFT took {} s'.format(end-start)
+        print('| Solving of the potential using FFT took {} s'.format(end-start))
         
-        print 'Total time taken to find the solution: {} s'.format(total_time)
+        print('Total time taken to find the solution: {} s'.format(total_time))
         self.is_solver_run = True
     
     
@@ -109,7 +108,7 @@ class ElectrostaticPotentialSolver(object):
             del trash_1
             del trash_2
         else:
-            print "Available types of data are: 'charge', 'potential', 'efield_x', 'efield_y' and 'efield_z'"
+            print("Available types of data are: 'charge', 'potential', 'efield_x', 'efield_y' and 'efield_z'")
         
         xs = np.linspace(0.0, 1.0, num=self.n_grid[0], endpoint=False)*self.sim_cell[0]
         ys = np.linspace(0.0, 1.0, num=self.n_grid[1], endpoint=False)*self.sim_cell[1]
@@ -163,20 +162,20 @@ class ElectrostaticPotentialSolver(object):
         self.ky = np.fft.fftfreq(self.n_grid[1], self.grid_spacing[1])
         self.kz = np.fft.fftfreq(self.n_grid[2], self.grid_spacing[2])
         
-        print ''
-        print 'Grid parameters:'
-        print '| cell_x = {}, cell_y = {}, cell_z = {}'.format(self.sim_cell[0], self.sim_cell[1], self.sim_cell[2])
-        print '| nx = {}, ny = {}, nz = {}'.format(self.n_grid[0], self.n_grid[1], self.n_grid[2])
-        print '| dx = {}, dy = {}, dz = {}'.format(self.grid_spacing[0], self.grid_spacing[1], self.grid_spacing[2])
-        print '| kx_max = {}, ky_max = {}, kz_max = {}'.format(self.kx.max(), self.ky.max(), self.kz.max())
-        print ''
+        print('')
+        print('Grid parameters:')
+        print('| cell_x = {}, cell_y = {}, cell_z = {}'.format(self.sim_cell[0], self.sim_cell[1], self.sim_cell[2]))
+        print('| nx = {}, ny = {}, nz = {}'.format(self.n_grid[0], self.n_grid[1], self.n_grid[2]))
+        print('| dx = {}, dy = {}, dz = {}'.format(self.grid_spacing[0], self.grid_spacing[1], self.grid_spacing[2]))
+        print('| kx_max = {}, ky_max = {}, kz_max = {}'.format(self.kx.max(), self.ky.max(), self.kz.max()))
+        print('')
     
     
     def _solve_fft_poisson(self):
         start = time.clock()
         charge_k_space = np.fft.fftn(self.charge_grid)
         end = time.clock()
-        print '| | FFT took {} s'.format(end-start)
+        print('| | FFT took {} s'.format(end-start))
         
         start = time.clock()
         pot_k_space = np.zeros(self.n_grid, dtype=np.complex)
@@ -201,9 +200,9 @@ class ElectrostaticPotentialSolver(object):
         
         pot_k_space = pot_k_space/(4.0*np.pi*np.pi*eps_0)
         end = time.clock()
-        print '| | k-space arithmetics took {} s'.format(end-start)
+        print('| | k-space arithmetics took {} s'.format(end-start))
         
         start = time.clock()
         self.pot_grid = np.fft.ifftn(pot_k_space).real
         end = time.clock()
-        print '| | Inverse FFT took {} s'.format(end-start)
+        print('| | Inverse FFT took {} s'.format(end-start))
